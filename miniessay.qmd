@@ -1,0 +1,67 @@
+---
+title: "Predictive Analysis of NFL Teams' Passing Efficiency in 2023 Season's Second Half"
+author: "Wentao Sun"
+abstract: "This study will also explore the predictive performance of different models, evaluate and select models, and ultimately determine the most appropriate model for predicting NFL passing efficiency. Our study will not only provide accurate passing efficiency predictions for the remainder of the season, but will also provide a scientific basis for play formulation and training scheduling for NFL teams."
+thanks: "Code and data are available at: https://github.com/TonySun1107/tut-prediction.git."
+date: today
+format: pdf
+bibliography: references.bib
+---
+
+# Introduction
+
+As the National Football League (NFL) has gained prominence in the global sports world, it has not only come to represent competitive football, but has also become an important symbol of the market and cultural influence of the sport.NFL games not only attract millions of spectators, but also develop extensive research, especially in the areas of sports statistics and predictive modeling. Among the many game strategies, passing efficiency is undoubtedly one of the key factors affecting the outcome of a game. Effective passing not only directly wins the game for a team, but also shapes the style of play to attract a larger fan base. 
+
+This article focuses on Weeks 10 through 18 of the 2023 NFL regular season and aims to develop a predictive model that accurately predicts each team's passing efficiency for the remainder of the season. The development of this predictive model is based on an in-depth analysis and understanding of the first nine weeks of game data, including team performance, individual players' passing records, and other statistics related to game outcomes. The prediction of passing efficiency is important for understanding team tactics, strategic placement, and player selection. This study is not only an important addition to the field of NFL passing efficiency prediction, but also demonstrates the broad potential of data science applications in sports. Through in-depth statistical analysis, we expect to provide new perspectives and tools for NFL team management, game strategy development, and sports science research.
+
+# Data Source and Methodology
+The data used in this paper were obtained from Data Dictionary - Play Stats. The dataset was processed using R[@citeR], a computer language designed for statistical computing and graphics, which included stages of downloading, cleaning, analysis, and visualization.
+
+
+In this project, we filtered and analyzed data from quarterbacks in the first 10 weeks of the 2023 NFL season, using a linear regression model to predict the passing efficiency indicator (passing_epa) for quarterbacks on each team. The data extracted from the statistical database was rigorously selected, including key information such as player ID, name, and team, and after ensuring data integrity, it was divided in a ratio of 90% for training and 10% for testing to evaluate the accuracy of the model in practical applications. This process aims to use the latest performance data from the current season to provide accurate player performance predictions for management, supporting their information needs in strategic planning and decision-making.
+```{r data, echo=FALSE, message=FALSE}
+library(nflverse)
+library(dplyr)
+library(tidyr)
+library(caret)
+library(lubridate)
+
+qb_regular_season_stats <- 
+  load_player_stats(seasons = TRUE) |> 
+  filter(season_type == "REG" & position == "QB")
+
+qb_data <- qb_regular_season_stats %>%
+  filter(position == "QB", week <= 10, season == 2023)
+
+train_data <- qb_data %>%
+  select(player_id, player_name, recent_team,season, week, passing_epa) %>%
+  na.omit()
+
+set.seed(100)
+training_index <- createDataPartition(train_data$passing_epa, p = 0.9, list = FALSE)
+train_set <- train_data[training_index, ]
+test_set <- train_data[-training_index, ]
+print(test_set)
+
+model <- lm(passing_epa ~ recent_team+season+week, data = train_set)
+print(model)
+
+```
+
+In our analysis project, to evaluate the performance of the predictive model we built in a real-world situation, we performed a key step: we used the model to make predictions about the data in the test set and calculated the Root Mean Square Error (RMSE), an important metric of the model's predictive accuracy. Through this process, we first used the model to predict the passing efficiency of the quarterbacks in the test set, subsequently calculated the difference between the predicted and actual values, then averaged the squares of these differences, and finally took the square root to obtain the RMSE value. This metric provides us with a quantitative number to help us understand how accurate the model is in predicting quarterback passing efficiency. A lower RMSE value means that the predictions are closer to actual performance, thus reflecting the high accuracy of the model. In this way, we are able to visualize the effectiveness of the model in real-world applications. Management can use this data to support team decisions in order to make informed strategic choices.
+
+```{r data2, echo=FALSE, message=FALSE}
+predictions <- predict(model, newdata = test_set)
+validation_rmse <- sqrt(mean((predictions - test_set$passing_epa)^2))
+print(validation_rmse)
+
+```
+
+# Discussion
+
+In discussing our predictive model and its accuracy in predicting quarterback passing efficiency in the second half of the 2023 NFL season, several key points worth noting take on particular importance. First, by comparing the actual predictions to the test dataset, we found that the model was able to provide relatively accurate predictions in most cases. However, while the Root Mean Square Error (RMSE) provides us with a useful measure of the model's overall prediction performance, it also has some shortcomings. For example, the prediction accuracy may be lower than average for some specific teams or specific game conditions, which may be due to the model's failure to adequately capture all of the variables that affect passing efficiency. This can lead to poor judgment.
+
+It is worth noting that team strategies and player performances may change as the season progresses, which challenges the model's adaptability. Therefore, retraining the model to incorporate the most recent game data would be key to improving prediction accuracy.
+
+\newpage
+# Reference
